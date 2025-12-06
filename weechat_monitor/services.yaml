@@ -1,0 +1,42 @@
+# WeeChat Monitor Services
+
+register_download:
+  name: Register Download
+  description: Register a completed DCC/XDCC download from WeeChat
+  fields:
+    filename:
+      name: Filename
+      description: Name of the downloaded file
+      required: true
+      example: "video.mkv"
+      selector:
+        text:
+    size_bytes:
+      name: Size (bytes)
+      description: Size of the file in bytes
+      required: true
+      example: 1073741824
+      selector:
+        number:
+          min: 0
+          max: 10995116277760
+          mode: box
+    timestamp:
+      name: Timestamp
+      description: Unix timestamp of the download completion
+      required: false
+      example: 1234567890
+      selector:
+        number:
+          min: 0
+          mode: box
+    filename_suffix:
+      name: Filename Suffix
+      description: Suffix appended to the filename in case of duplicate downloads (e.g., for "file.txt.1", the suffix is 1)
+      required: false
+      example: 1
+      selector:
+        number:
+          min: -1
+          max: 10995116277760
+          mode: box

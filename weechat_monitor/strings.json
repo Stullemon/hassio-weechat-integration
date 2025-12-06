@@ -1,0 +1,26 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up WeeChat Monitor",
+        "description": "This integration monitors WeeChat DCC/XDCC downloads and provides statistics in Home Assistant.\n\nWeeChat Add-on status: {addon_status}",
+        "data": {
+          "enable_notifications": "Enable download notifications"
+        }
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Only a single instance of WeeChat Monitor is allowed."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "WeeChat Monitor Options",
+        "data": {
+          "enable_notifications": "Enable download notifications"
+        }
+      }
+    }
+  }
+}
