@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Set up WeeChat Monitor",
-        "description": "This integration monitors WeeChat DCC/XDCC downloads and provides statistics in Home Assistant.\n\nWeeChat Add-on status: {addon_status}",
+        "description": "This integration monitors WeeChat DCC/XDCC downloads and provides statistics in Home Assistant.",
         "data": {
           "enable_notifications": "Enable download notifications"
         }

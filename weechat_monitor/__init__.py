@@ -1,21 +1,19 @@
 """WeeChat Monitor Integration for Home Assistant."""
 import logging
 from datetime import datetime, timedelta
-from typing import Final
 
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.dispatcher import async_dispatcher_send
-from homeassistant.const import Platform
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
+from .const import DOMAIN, PLATFORMS
+
 _LOGGER = logging.getLogger(__name__)
 
-DOMAIN: Final = "weechat_monitor"
-PLATFORMS: list[Platform] = [Platform.SENSOR]
 STORAGE_VERSION = 1
 STORAGE_KEY = f"{DOMAIN}.storage"
 
@@ -39,13 +37,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up WeeChat Monitor from a config entry."""
     _LOGGER.info("Setting up WeeChat Monitor integration")
-    
-    # Check if WeeChat add-on is available
-    addon_available = await _check_addon_available(hass)
-    if addon_available:
-        _LOGGER.info("WeeChat add-on detected and running")
-    else:
-        _LOGGER.warning("WeeChat add-on not detected - integration will still work if called manually")
     
     # Initialize domain data
     hass.data.setdefault(DOMAIN, {})
@@ -210,26 +201,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN].pop(entry.entry_id)
     
     return unload_ok
-
-
-async def _check_addon_available(hass: HomeAssistant) -> bool:
-    """Check if WeeChat add-on is installed and running."""
-    try:
-        # Check if supervisor is available
-        if not hass.components.hassio.is_hassio():
-            return False
-
-        # Try to get add-on info
-        # Replace 'local_weechat' with your actual add-on slug
-        addon_slug = "local_weechat"
-        addon_info = await hass.components.hassio.async_get_addon_info(addon_slug)
-        
-        if addon_info and addon_info.get("state") == "started":
-            return True
-    except Exception as e:
-        _LOGGER.debug(f"Could not check add-on status: {e}")
-    
-    return False
 
 
 def _format_bytes(bytes_val: int) -> str:

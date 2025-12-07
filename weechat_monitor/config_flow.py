@@ -7,11 +7,11 @@ from typing import Any
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import selector
 
-from . import DOMAIN
+from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,12 +30,6 @@ class WeeChat_MonitorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         # Check if already configured
         if self._async_current_entries():
             return self.async_abort(reason="single_instance_allowed")
-
-        # Check if WeeChat add-on is installed
-        addon_info = await self._check_addon()
-        addon_status = "not installed"
-        if addon_info:
-            addon_status = addon_info.get("state", "unknown")
 
         if user_input is not None:
             # Create the config entry
@@ -59,9 +53,6 @@ class WeeChat_MonitorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     ): selector.BooleanSelector(),
                 }
             ),
-            description_placeholders={
-                "addon_status": addon_status,
-            },
         )
 
     @staticmethod
@@ -72,26 +63,8 @@ class WeeChat_MonitorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Get the options flow for this handler."""
         return WeeChat_MonitorOptionsFlow(config_entry)
 
-    async def _check_addon(self) -> dict[str, Any] | None:
-        """Check if WeeChat add-on is installed."""
-        try:
-            # Check if supervisor is available
-            if not self.hass.components.hassio.is_hassio():
-                return None
 
-            # Try to get add-on info
-            # Replace 'local_weechat' with your actual add-on slug
-            addon_slug = "local_weechat"
-            addon_info = await self.hass.components.hassio.async_get_addon_info(
-                addon_slug
-            )
-            return addon_info
-        except Exception as e:
-            _LOGGER.debug(f"Could not check add-on status: {e}")
-            return None
-
-
-class WeeChat_MonitorOptionsFlow(config_entries.OptionsFlow):
+class WeeChat_addon_statusMonitorOptionsFlow(config_entries.OptionsFlow):
     """Handle options flow for WeeChat Monitor."""
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:

@@ -10,13 +10,14 @@ from homeassistant.components.sensor import (
     RestoreEntity,
 )
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import UnitOfInformation
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.util import dt as dt_util
 
-from . import DOMAIN
+from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -109,11 +110,13 @@ class WeeChat_DailyBytesSensor(SensorEntity):
     """Sensor for daily download volume."""
     
     _attr_has_entity_name = True
-    _attr_name = "Daily Volume"
+    _attr_name = "Daily Download Volume"
     _attr_icon = "mdi:database-arrow-down"
     _attr_state_class = SensorStateClass.TOTAL
     _attr_device_class = SensorDeviceClass.DATA_SIZE
-    _attr_native_unit_of_measurement = "B"
+    _attr_native_unit_of_measurement = UnitOfInformation.BYTES
+    _attr_suggested_unit_of_measurement = UnitOfInformation.GIGABYTES
+    _attr_suggested_display_precision = 2
     
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         """Initialize the sensor."""
@@ -228,25 +231,19 @@ class WeeChat_TotalCountSensor(RestoreEntity, SensorEntity):
         """Update sensor."""
         data = self.hass.data[DOMAIN][self._entry.entry_id]
         self._attr_native_value = data["total_count"]
-    
-    @property
-    def extra_state_attributes(self) -> dict[str, Any]:
-        """Return additional attributes."""
-        data = self.hass.data[DOMAIN][self._entry.entry_id]
-        return {
-            "total": data["total_count"],
-        }
 
 
 class WeeChat_TotalBytesSensor(RestoreEntity, SensorEntity):
     """Sensor for total download volume (all time)."""
     
     _attr_has_entity_name = True
-    _attr_name = "Total Volume"
+    _attr_name = "Total Download Volume"
     _attr_icon = "mdi:database"
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
     _attr_device_class = SensorDeviceClass.DATA_SIZE
-    _attr_native_unit_of_measurement = "B"
+    _attr_native_unit_of_measurement = UnitOfInformation.BYTES
+    _attr_suggested_unit_of_measurement = UnitOfInformation.GIGABYTES
+    _attr_suggested_display_precision = 2
     
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         """Initialize the sensor."""
