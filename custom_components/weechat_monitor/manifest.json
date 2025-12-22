@@ -3,7 +3,7 @@
   "name": "WeeChat Monitor",
   "codeowners": [],
   "config_flow": true,
-  "documentation": "https://github.com/yourusername/weechat_monitor",
+  "documentation": "https://github.com/Stullemon/hassio-weechat-integration",
   "integration_type": "service",
   "iot_class": "local_push",
   "requirements": [],
