@@ -2,7 +2,7 @@
 
 register_download:
   name: Register Download
-  description: Register a completed DCC/XDCC download from WeeChat
+  description: Register a completed DCC download from WeeChat
   fields:
     filename:
       name: Filename

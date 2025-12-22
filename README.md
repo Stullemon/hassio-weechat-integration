@@ -24,7 +24,7 @@ Lightweight Home Assistant custom integration to monitor downloads and metrics f
 ## Features
 - Exposes download statistics as Home Assistant sensors (daily and total counts/volumes).
 - Records information about the last download (filename, size, timestamp, humanized "time ago").
-- Provides a service to register downloads from external sources (e.g., WeeChat DCC/XDCC events).
+- Provides a service to register downloads from external sources (e.g., WeeChat DCC events).
 - Simple configuration flow and built-in translations.
 
 ## Requirements
@@ -92,7 +92,7 @@ The integration exposes the following sensors (entity names shown are examples â
 This integration provides the following service to register completed downloads:
 
 ### `weechat_monitor.register_download`
-Registers a completed DCC/XDCC download. Useful to be called from an external script, an add-on, or from an automation triggered by the WeeChat add-on.
+Registers a completed DCC download. Useful to be called from an external script, an add-on, or from an automation triggered by the WeeChat add-on.
 
 Fields:
 - `filename` (string, required): Name of the downloaded file (e.g., `video.mkv`).
