@@ -57,19 +57,16 @@ class WeeChat_MonitorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
-    def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,
-    ) -> WeeChat_MonitorOptionsFlow:
+    def async_get_options_flow(config_entry) -> WeeChat_MonitorOptionsFlow:
         """Get the options flow for this handler."""
-        return WeeChat_MonitorOptionsFlow(config_entry)
+        return WeeChat_MonitorOptionsFlow()
 
 
-class WeeChat_addon_statusMonitorOptionsFlow(config_entries.OptionsFlow):
+class WeeChat_MonitorOptionsFlow(config_entries.OptionsFlow):
     """Handle options flow for WeeChat Monitor."""
 
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+    def __init__(self) -> None:
         """Initialize options flow."""
-        self.config_entry = config_entry
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
