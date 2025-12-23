@@ -36,6 +36,10 @@ async def async_setup_entry(
         WeeChat_TotalCountSensor(hass, entry),
         WeeChat_TotalBytesSensor(hass, entry),
         WeeChat_LastDownloadSensor(hass, entry),
+        WeeChat_TotalServersSensor(hass, entry),
+        WeeChat_ConnectedServersSensor(hass, entry),
+        WeeChat_TotalChannelsSensor(hass, entry),
+        WeeChat_TotalPrivateChatsSensor(hass, entry),
     ]
     
     async_add_entities(sensors, True)
@@ -404,3 +408,171 @@ class WeeChat_LastDownloadSensor(SensorEntity):
             return f"{minutes} minute{'s' if minutes != 1 else ''} ago"
         
         return "Just now"
+
+class WeeChat_TotalServersSensor(RestoreEntity, SensorEntity):
+    """Sensor for total servers known."""
+
+    _attr_has_entity_name = True
+    _attr_name = "Total Servers"
+    _attr_icon = "mdi:server"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = "servers"
+
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+        self.hass = hass
+        self._entry = entry
+        self._attr_unique_id = f"{entry.entry_id}_total_servers"
+        self._attr_native_value = 0
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, entry.entry_id)},
+            name="WeeChat Monitor",
+            manufacturer="Custom",
+            model="Server Stats",
+            sw_version="0.1.0",
+        )
+
+    async def async_added_to_hass(self) -> None:
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass, f"{DOMAIN}_update", self._handle_update
+            )
+        )
+        # Initialize from hass.data
+        data = self.hass.data[DOMAIN][self._entry.entry_id]
+        self._attr_native_value = data.get("total_servers", 0)
+
+    @callback
+    def _handle_update(self) -> None:
+        data = self.hass.data[DOMAIN][self._entry.entry_id]
+        self._attr_native_value = data.get("total_servers", 0)
+        self.async_write_ha_state()
+
+    async def async_update(self) -> None:
+        data = self.hass.data[DOMAIN][self._entry.entry_id]
+        self._attr_native_value = data.get("total_servers", 0)
+
+
+class WeeChat_ConnectedServersSensor(RestoreEntity, SensorEntity):
+    """Sensor for currently connected servers."""
+
+    _attr_has_entity_name = True
+    _attr_name = "Connected Servers"
+    _attr_icon = "mdi:server-network"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = "servers"
+
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+        self.hass = hass
+        self._entry = entry
+        self._attr_unique_id = f"{entry.entry_id}_connected_servers"
+        self._attr_native_value = 0
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, entry.entry_id)},
+            name="WeeChat Monitor",
+            manufacturer="Custom",
+            model="Server Stats",
+            sw_version="0.1.0",
+        )
+
+    async def async_added_to_hass(self) -> None:
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass, f"{DOMAIN}_update", self._handle_update
+            )
+        )
+        data = self.hass.data[DOMAIN][self._entry.entry_id]
+        self._attr_native_value = data.get("connected_servers", 0)
+
+    @callback
+    def _handle_update(self) -> None:
+        data = self.hass.data[DOMAIN][self._entry.entry_id]
+        self._attr_native_value = data.get("connected_servers", 0)
+        self.async_write_ha_state()
+
+    async def async_update(self) -> None:
+        data = self.hass.data[DOMAIN][self._entry.entry_id]
+        self._attr_native_value = data.get("connected_servers", 0)
+
+
+class WeeChat_TotalChannelsSensor(RestoreEntity, SensorEntity):
+    """Sensor for total channels across servers."""
+
+    _attr_has_entity_name = True
+    _attr_name = "Total Channels"
+    _attr_icon = "mdi:chat"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = "channels"
+
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+        self.hass = hass
+        self._entry = entry
+        self._attr_unique_id = f"{entry.entry_id}_total_channels"
+        self._attr_native_value = 0
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, entry.entry_id)},
+            name="WeeChat Monitor",
+            manufacturer="Custom",
+            model="Channel Stats",
+            sw_version="0.1.0",
+        )
+
+    async def async_added_to_hass(self) -> None:
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass, f"{DOMAIN}_update", self._handle_update
+            )
+        )
+        data = self.hass.data[DOMAIN][self._entry.entry_id]
+        self._attr_native_value = data.get("total_channels", 0)
+
+    @callback
+    def _handle_update(self) -> None:
+        data = self.hass.data[DOMAIN][self._entry.entry_id]
+        self._attr_native_value = data.get("total_channels", 0)
+        self.async_write_ha_state()
+
+    async def async_update(self) -> None:
+        data = self.hass.data[DOMAIN][self._entry.entry_id]
+        self._attr_native_value = data.get("total_channels", 0)
+
+
+class WeeChat_TotalPrivateChatsSensor(RestoreEntity, SensorEntity):
+    """Sensor for total private chats."""
+
+    _attr_has_entity_name = True
+    _attr_name = "Total Private Chats"
+    _attr_icon = "mdi:account-multiple"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = "chats"
+
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+        self.hass = hass
+        self._entry = entry
+        self._attr_unique_id = f"{entry.entry_id}_total_private_chats"
+        self._attr_native_value = 0
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, entry.entry_id)},
+            name="WeeChat Monitor",
+            manufacturer="Custom",
+            model="Channel Stats",
+            sw_version="0.1.0",
+        )
+
+    async def async_added_to_hass(self) -> None:
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass, f"{DOMAIN}_update", self._handle_update
+            )
+        )
+        data = self.hass.data[DOMAIN][self._entry.entry_id]
+        self._attr_native_value = data.get("total_private_chats", 0)
+
+    @callback
+    def _handle_update(self) -> None:
+        data = self.hass.data[DOMAIN][self._entry.entry_id]
+        self._attr_native_value = data.get("total_private_chats", 0)
+        self.async_write_ha_state()
+
+    async def async_update(self) -> None:
+        data = self.hass.data[DOMAIN][self._entry.entry_id]
+        self._attr_native_value = data.get("total_private_chats", 0)

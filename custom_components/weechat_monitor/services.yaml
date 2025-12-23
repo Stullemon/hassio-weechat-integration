@@ -40,3 +40,44 @@ register_download:
           min: -1
           max: 10995116277760
           mode: box
+
+update_counts:
+  name: Update Counts
+  description: Update aggregated counters (servers, channels, private chats)
+  fields:
+    total_servers:
+      name: Total servers
+      description: Total number of known servers (integer)
+      required: false
+      example: 4
+      selector:
+        number:
+          min: 0
+          mode: box
+    connected_servers:
+      name: Connected servers
+      description: Number of currently connected servers (integer)
+      required: false
+      example: 2
+      selector:
+        number:
+          min: 0
+          mode: box
+    total_channels:
+      name: Total channels
+      description: Total number of channels across servers (integer)
+      required: false
+      example: 37
+      selector:
+        number:
+          min: 0
+          mode: box
+    total_private_chats:
+      name: Total private chats
+      description: Total private chats (integer)
+      required: false
+      example: 15
+      selector:
+        number:
+          min: 0
+          mode: box

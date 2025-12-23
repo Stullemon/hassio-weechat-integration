@@ -17,8 +17,8 @@ _LOGGER = logging.getLogger(__name__)
 STORAGE_VERSION = 1
 STORAGE_KEY = f"{DOMAIN}.storage"
 
-# Storage for download data
-DOWNLOAD_DATA = {
+# Storage for monitor data
+STATE_DATA = {
     "downloads": [],  # List of recent downloads (for display)
     "daily_count": 0,
     "daily_bytes": 0,
@@ -26,6 +26,11 @@ DOWNLOAD_DATA = {
     "last_download": None,
     "total_count": 0,  # Persistent total
     "total_bytes": 0,  # Persistent total
+    # Aggregated connection/channel/chat counters
+    "total_servers": 0,
+    "connected_servers": 0,
+    "total_channels": 0,
+    "total_private_chats": 0,
 }
 
 
@@ -48,11 +53,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     stored_data = await store.async_load()
     if stored_data:
         _LOGGER.info(f"Loaded persisted data: {stored_data.get('total_count', 0)} downloads, {stored_data.get('total_bytes', 0)} bytes")
-        data = DOWNLOAD_DATA.copy()
+        data = STATE_DATA.copy()
         data.update({
             "total_count": stored_data.get("total_count", 0),
             "total_bytes": stored_data.get("total_bytes", 0),
             "last_download": stored_data.get("last_download"),
+            "total_servers": stored_data.get("total_servers", 0),
+            "connected_servers": stored_data.get("connected_servers", 0),
+            "total_channels": stored_data.get("total_channels", 0),
+            "total_private_chats": stored_data.get("total_private_chats", 0),
         })
         # Reset daily counters if date changed
         last_reset_str = stored_data.get("last_reset")
@@ -64,7 +73,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 data["last_reset"] = last_reset
         hass.data[DOMAIN][entry.entry_id] = data
     else:
-        hass.data[DOMAIN][entry.entry_id] = DOWNLOAD_DATA.copy()
+        hass.data[DOMAIN][entry.entry_id] = STATE_DATA.copy()
     
     hass.data[DOMAIN]["store"] = store
     
@@ -78,6 +87,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             "daily_bytes": data["daily_bytes"],
             "last_reset": data["last_reset"].isoformat(),
             "last_download": data["last_download"],
+            "total_servers": data.get("total_servers", 0),
+            "connected_servers": data.get("connected_servers", 0),
+            "total_channels": data.get("total_channels", 0),
+            "total_private_chats": data.get("total_private_chats", 0),
         })
     
     async def handle_register_download(call: ServiceCall) -> None:
@@ -152,10 +165,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         # Update sensors
         async_dispatcher_send(hass, f"{DOMAIN}_update")
     
-    # Register service
-    hass.services.async_register(
-        DOMAIN, "register_download", handle_register_download
-    )
+    async def handle_update_counts(call: ServiceCall) -> None:
+        """Handle update of server/channel/chat counts."""
+        entry_id = list(filter(lambda k: k != "store", hass.data[DOMAIN].keys()))[0]
+        data = hass.data[DOMAIN][entry_id]
+
+        fields = ("total_servers", "connected_servers", "total_channels", "total_private_chats")
+        updated = False
+        for f in fields:
+            if f in call.data:
+                try:
+                    data[f] = int(call.data[f])
+                    updated = True
+                except (TypeError, ValueError):
+                    _LOGGER.warning("Invalid value for %s: %s", f, call.data.get(f))
+
+        if updated:
+            await save_data()
+            async_dispatcher_send(hass, f"{DOMAIN}_update")
+
+    # Register services
+    hass.services.async_register(DOMAIN, "register_download", handle_register_download)
+    hass.services.async_register(DOMAIN, "update_counts", handle_update_counts)
     
     # Setup platforms
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -193,6 +224,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             "daily_bytes": data["daily_bytes"],
             "last_reset": data["last_reset"].isoformat(),
             "last_download": data["last_download"],
+            "total_servers": data.get("total_servers", 0),
+            "connected_servers": data.get("connected_servers", 0),
+            "total_channels": data.get("total_channels", 0),
+            "total_private_chats": data.get("total_private_chats", 0),
         })
     
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)

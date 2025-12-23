@@ -84,14 +84,26 @@ The integration exposes the following sensors (entity names shown are examples �
   - state: filename (or "No downloads yet")
   - attributes: `filename`, `size_bytes`, `size_formatted`, `timestamp`, `time_ago`
 
+- **sensor.total_servers** — Total Servers
+  - state: total known servers
+
+- **sensor.connected_servers** — Connected Servers
+  - state: number of currently connected servers
+
+- **sensor.total_channels** — Total Channels
+  - state: total channels across all servers
+
+- **sensor.total_private_chats** — Total Private Chats
+  - state: total private chats across all servers
+
 > Note: actual entity IDs will include the integration entry ID and may be shown in the UI with the friendly names above.
 
 ---
 
 ## Services
-This integration provides the following service to register completed downloads:
+This integration provides the following services to interact with the integration. A dedicated `SERVICES.md` file explains the exact payloads and provides examples for calling the Home Assistant services via the REST API (use an access token or call from an add-on running inside Home Assistant): `SERVICES.md`.
 
-### `weechat_monitor.register_download`
+### `weechat.register_download`
 Registers a completed DCC download. Useful to be called from an external script, an add-on, or from an automation triggered by the WeeChat add-on.
 
 Fields:
@@ -103,13 +115,36 @@ Fields:
 Example service call (YAML):
 
 ```yaml
-service: weechat_monitor.register_download
+service: weechat.register_download
 data:
   filename: "video.mkv"
   size_bytes: 1073741824
   timestamp: 1700000000
 ```
 
+---
+
+### `weechat.update_counts`
+Update aggregated counters (servers, channels, private chats) — intended to be called periodically by the WeeChat add-on.
+
+Fields:
+- `total_servers` (number, optional): Total number of known servers.
+- `connected_servers` (number, optional): Number of currently connected servers.
+- `total_channels` (number, optional): Total number of channels.
+- `total_private_chats` (number, optional): Total number of private chats.
+
+Example service call (YAML):
+
+```yaml
+service: weechat.update_counts
+data:
+  total_servers: 4
+  connected_servers: 2
+  total_channels: 37
+  total_private_chats: 15
+```
+
+For full examples (curl / REST) and details for add-on authors, see `SERVICES.md`. 
 ---
 
 ## Usage examples
