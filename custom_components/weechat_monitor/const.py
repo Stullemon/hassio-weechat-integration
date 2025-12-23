@@ -3,5 +3,5 @@ from typing import Final
 
 from homeassistant.const import Platform
 
-DOMAIN: Final = "weechat_monitor"
+DOMAIN: Final = "weechat"
 PLATFORMS: list[Platform] = [Platform.SENSOR]

@@ -1,5 +1,5 @@
 {
-  "domain": "weechat_monitor",
+  "domain": "weechat",
   "name": "WeeChat Monitor",
   "codeowners": [],
   "config_flow": true,
