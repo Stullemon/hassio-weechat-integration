@@ -81,3 +81,9 @@ update_counts:
         number:
           min: 0
           mode: box
+    alive:
+      name: Addon alive
+      description: Whether the WeeChat add-on is alive (boolean). Set True while running, False when shutting down.
+      required: false
+      selector:
+        boolean: {}

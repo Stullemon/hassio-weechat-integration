@@ -166,12 +166,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         async_dispatcher_send(hass, f"{DOMAIN}_update")
     
     async def handle_update_counts(call: ServiceCall) -> None:
-        """Handle update of server/channel/chat counts."""
+        """Handle update of server/channel/chat counts and report addon liveness."""
         entry_id = list(filter(lambda k: k != "store", hass.data[DOMAIN].keys()))[0]
         data = hass.data[DOMAIN][entry_id]
 
         fields = ("total_servers", "connected_servers", "total_channels", "total_private_chats")
         updated = False
+
+        # If explicit alive flag provided, honor it
+        if "alive" in call.data:
+            alive = bool(call.data.get("alive"))
+            # Record last seen time when alive True
+            if alive:
+                data["addon_alive"] = True
+                data["last_seen"] = dt_util.utcnow().isoformat()
+            else:
+                # Explicit shutdown: mark addon offline and zero counts
+                data["addon_alive"] = False
+                for f in fields:
+                    data[f] = 0
+                updated = True
+
+        # Update numeric fields if provided (and treat this as a heartbeat)
         for f in fields:
             if f in call.data:
                 try:
@@ -180,9 +196,43 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 except (TypeError, ValueError):
                     _LOGGER.warning("Invalid value for %s: %s", f, call.data.get(f))
 
+        # If any numeric update occurred, treat this as a heartbeat
+        if updated and data.get("addon_alive") is False:
+            data["addon_alive"] = True
+            data["last_seen"] = dt_util.utcnow().isoformat()
+
         if updated:
             await save_data()
             async_dispatcher_send(hass, f"{DOMAIN}_update")
+
+    # Liveness watchdog: mark addon offline if no heartbeat seen within timeout
+    LIVENESS_TIMEOUT_SECONDS = 120
+
+    async def check_addon_liveness(now):
+        fields = ("total_servers", "connected_servers", "total_channels", "total_private_chats")
+        for entry_id, data in hass.data[DOMAIN].items():
+            if entry_id == "store":
+                continue
+            last_seen_str = data.get("last_seen")
+            if not last_seen_str:
+                continue
+            try:
+                last_seen = dt_util.parse_datetime(last_seen_str)
+            except Exception:
+                last_seen = None
+            if not last_seen:
+                continue
+            age = dt_util.utcnow() - dt_util.as_utc(last_seen)
+            if age.total_seconds() > LIVENESS_TIMEOUT_SECONDS and data.get("addon_alive"):
+                _LOGGER.info("WeeChat addon heartbeat timed out (> %s s) - marking offline and zeroing counts", LIVENESS_TIMEOUT_SECONDS)
+                data["addon_alive"] = False
+                for f in fields:
+                    data[f] = 0
+                await save_data()
+                async_dispatcher_send(hass, f"{DOMAIN}_update")
+
+    # Start watchdog every 30 seconds
+    async_track_time_interval(hass, check_addon_liveness, timedelta(seconds=30))
 
     # Register services
     hass.services.async_register(DOMAIN, "register_download", handle_register_download)

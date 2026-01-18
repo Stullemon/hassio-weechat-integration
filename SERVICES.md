@@ -46,7 +46,7 @@ Notes:
 ---
 
 ## 2) `weechat.update_counts`
-Update aggregated server/channel/chat counters. Intended to be called periodically by the WeeChat add-on to report current statistics.
+Update aggregated server/channel/chat counters. Intended to be called periodically by the WeeChat add-on to report current statistics, and to act as a heartbeat/health signal for the add-on.
 
 Path:
 
@@ -57,6 +57,7 @@ Payload fields (all optional — include only fields you want to update):
 - `connected_servers` (number): Number of currently connected servers.
 - `total_channels` (number): Total number of channels across servers.
 - `total_private_chats` (number): Total number of private chats across servers.
+- `alive` (boolean): Optional heartbeat field. Set `true` while the add-on is running; on shutdown send `false` to indicate the add-on is stopping.
 
 Example (curl):
 
@@ -64,19 +65,21 @@ Example (curl):
 curl -X POST \
   -H "Authorization: Bearer YOUR_LONG_LIVED_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"total_servers": 4, "connected_servers": 2, "total_channels": 37, "total_private_chats": 15}' \
+  -d '{"total_servers": 4, "connected_servers": 2, "total_channels": 37, "total_private_chats": 15, "alive": true}' \
   https://<your-home-assistant>/api/services/weechat/update_counts
 ```
 
 Notes:
 - Only fields provided in the JSON will be updated. The integration persists these counters in the same storage used for totals so values survive restarts.
+- If the `alive` field is set to `false` (explicit shutdown), the integration will mark the add-on as offline and zero the counts.
+- The integration also has a watchdog that marks the add-on offline if no heartbeat has been received within 120 seconds — in that case the counts are zeroed automatically.
 - After a successful update the integration dispatches an update signal and the affected sensors will reflect the new values.
 
 ---
 
 ## Add-on integration recommendations
 - Use a long-lived access token scoped to the add-on or a Home Assistant internal call if running inside the same environment.
-- Call the `update_counts` periodically (for example every 30s–5min depending on how often you expect changes) or whenever the add-on detects a change in connections/channels.
+- Call the `update_counts` every minute (aligned to the minute, e.g. at 0 seconds) so the integration receives a predictable heartbeat; the add-on should also send `alive: false` on shutdown.
 - For download events, call `register_download` as soon as the transfer completes so counters and last-download details are accurate.
 
 If you need help wiring the add-on to call these services, open an issue in this repository and include details about how the add-on is running (supervised, add-on, Docker, etc.).
