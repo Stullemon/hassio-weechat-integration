@@ -29,7 +29,7 @@ Lightweight Home Assistant custom integration to monitor downloads and metrics f
 
 ## Requirements
 - Home Assistant core (tested on recent versions; compatibility may vary).
-- A running WeeChat add-on or another process capable of calling the integration's service(s).
+- A running [WeeChat add-on](https://github.com/Stullemon/hassio-addons) or another process capable of calling the integration's service(s).
 
 ---
 
