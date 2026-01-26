@@ -195,5 +195,6 @@ This project is licensed under the MIT License — see the `LICENSE` file for fu
 ## Disclaimer
 - **Not affiliated with WeeChat:** This project is **in no way related to the WeeChat project** or its maintainers.
 - **Provided as-is:** The software is provided **"as is"**, without warranty of any kind. Use at your own risk.
+- **LLM used:** This add-on was created in part with the help of ChatGPT and Claude Sonnet
 
 If you need help integrating this into your Home Assistant instance, please open an issue.
